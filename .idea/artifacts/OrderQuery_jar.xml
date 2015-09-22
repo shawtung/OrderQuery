@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact name="OrderQuery:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/OrderQuery_jar</output-path>
+    <root id="root">
+      <element id="archive" name="OrderQuery.jar">
+        <element id="module-output" name="OrderQuery" />
+      </element>
+      <element id="directory" name="lib">
+        <element id="file-copy" path="C:/Program Files/Java/jdk1.8.0_51/jre/lib/mysql-connector-java-5.1.36-bin.jar" />
+        <element id="file-copy" path="C:/Program Files/Java/jdk1.8.0_51/jre/lib/jxl-2.6.12.jar" />
+      </element>
+    </root>
+  </artifact>
+</component>

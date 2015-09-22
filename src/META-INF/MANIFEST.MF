@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Class-Path: lib/mysql-connector-java-5.1.36-bin.jar lib/jxl-2.6.12.jar
+Main-Class: JDBCFun
+
