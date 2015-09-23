@@ -1,8 +1,6 @@
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.PrintStream;
@@ -15,7 +13,7 @@ public class MainUI extends JFrame{
 	private JTextArea jTA;
 	private JLabel jL1, jL2, jL3, jL4;
 	private JTextField jTF1;
-	private JButton jB;
+	private JButton jB1, jB2, jB3;
 	private JPanel jP;
 	private PrintStream psOut, psErr;
 
@@ -27,7 +25,7 @@ public class MainUI extends JFrame{
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(new BorderLayout());
 		addJPanel();
-		this.getRootPane().setDefaultButton(jB);
+		this.getRootPane().setDefaultButton(jB1);
 
 		psOut = new PrintStream(System.out) {
 			@Override
@@ -79,27 +77,36 @@ public class MainUI extends JFrame{
 	}
 
 	public void addJButton() {
-		jB = new JButton("订单");
-		jB.setBounds(30, 300, 100, 20);
-		jP.add(jB);
-		jB.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-				dateFormat.setLenient(false);
-				if (jTF1.getText().length() == 8) {
-					try {
-						dateFormat.parse(jTF1.getText());
-						System.out.println("The Date is: " + getDate());
-						XLS.makeXLS("OrderQuerySQL", getDate());
-					} catch (Exception pe) {
-						System.out.println("Wrong Date!");
-					}
-				} else {
-					System.out.println("Wrong Date format!");
-				}
+		jB1 = new JButton("订单");
+		jB1.setBounds(30, 300, 100, 20);
+		jP.add(jB1);
+		jB1.addActionListener(event -> buttonAP("OrderQuerySQL"));
+
+		jB2 = new JButton("提现");
+		jB2.setBounds(30, 320, 100, 20);
+		jP.add(jB2);
+		jB2.addActionListener(event -> buttonAP("WithdrawQuerySQL"));
+
+		jB3 = new JButton("用户");
+		jB3.setBounds(30, 340, 100, 20);
+		jP.add(jB3);
+		jB3.addActionListener(event -> buttonAP("AuthenticatedUserQuerySQL"));
+	}
+
+	public void buttonAP(String sql) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+		dateFormat.setLenient(false);
+		if (jTF1.getText().length() == 8) {
+			try {
+				dateFormat.parse(jTF1.getText());
+				System.out.println("The Date is: " + getDate());
+				XLS.makeXLS("TEST", sql, getDate());
+			} catch (Exception pe) {
+				System.out.println("Wrong Date!");
 			}
-		});
+		} else {
+			System.out.println("Wrong Date format!");
+		}
 	}
 
 
@@ -111,7 +118,21 @@ public class MainUI extends JFrame{
 		jP.add(jTA);
 //		JScrollPane jSP = new JScrollPane(jTA);
 //		jP.add(jSP);
+//		jSP.setViewportView(jTA);
 	}
+
+	public void jTFKL() {
+		if (jTF1.getText().length() > 8) {
+			jTF1.setText(jTF1.getText().substring(0, 8));
+		}
+		for (int i = 0; i < jTF1.getText().length(); i++) {
+			if (jTF1.getText().charAt(i) < '0' || jTF1.getText().charAt(i) > '9') {
+				jTF1.setText("");
+				break;
+			}
+		}
+	}
+
 
 	public void addJTextField() {
 		jTF1 = new JTextField("", 8);
@@ -127,28 +148,12 @@ public class MainUI extends JFrame{
 
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if (jTF1.getText().length() > 8) {
-					jTF1.setText(jTF1.getText().substring(0, 8));
-				}
-				for (int i = 0; i < jTF1.getText().length(); i++) {
-					if (jTF1.getText().charAt(i) < '0' || jTF1.getText().charAt(i) > '9') {
-						jTF1.setText("");
-						break;
-					}
-				}
+				jTFKL();
 			}
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				if (jTF1.getText().length() > 8) {
-					jTF1.setText(jTF1.getText().substring(0, 8));
-				}
-				for (int i = 0; i < jTF1.getText().length(); i++) {
-					if (jTF1.getText().charAt(i) < '0' || jTF1.getText().charAt(i) > '9') {
-						jTF1.setText("");
-						break;
-					}
-				}
+				jTFKL();
 			}
 		});
 
@@ -164,15 +169,18 @@ public class MainUI extends JFrame{
 		innerJP1.add(jL1, "North");
 
 		JPanel innerJP2 = new JPanel();
-		innerJP2.setBounds(150, 250, 150, 70);
+		innerJP2.setBounds(150, 270, 150, 70);
 		innerJP2.setLayout(new BorderLayout());
 		jP.add(innerJP2);
+
 		jL2 = new JLabel("日期为八位数字");
 		jL2.setFont(new Font("楷体", Font.PLAIN, 15));
 		innerJP2.add(jL2, "North");
+
 		jL3 = new JLabel("如20151225");
 		jL3.setFont(new Font("楷体", Font.PLAIN, 15));
 		innerJP2.add(jL3, "Center");
+
 		jL4 = new JLabel("在当前目录生成报表");
 		jL4.setFont(new Font("楷体", Font.PLAIN, 15));
 		innerJP2.add(jL4, "South");
@@ -186,17 +194,13 @@ public class MainUI extends JFrame{
 
 
 	public static void main(String[] args) {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
+		SwingUtilities.invokeLater(() -> {
 				MainUI mainUI = new MainUI();
 				System.setOut(mainUI.getPsOut());
 				System.setErr(mainUI.getPsErr());
-//				System.out.println("Started...");
 
 			}
-		});
-
+		);
 	}
 
 }

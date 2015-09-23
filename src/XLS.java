@@ -16,21 +16,35 @@ import jxl.write.biff.RowsExceededException;
 
 public class XLS {
     // JDBC driver name and database URL
-    static final String DBT_URL = "jdbc:mysql://121.41.33.100:3306/51qed?useUnicode=true&characterEncoding=UTF-8";
-    static final String DB_URL = "jdbc:mysql://121.41.106.210:3306/51qed?useUnicode=true&characterEncoding=UTF-8";
+    static final String DB_URL_TEST = "jdbc:mysql://121.41.33.100:3306/51qed?useUnicode=true&characterEncoding=UTF-8";
+    static final String DB_URL_PROD = "jdbc:mysql://121.41.106.210:3306/51qed?useUnicode=true&characterEncoding=UTF-8";
 
     //  Database credentials
-    static final String USERT = "root";
-    static final String PASST = "";
-    static final String USER = "samewayread";
-    static final String PASS = "sameway25@*&1";
+    static final String USER_TEST = "root";
+    static final String PASS_TEST = "";
+    static final String USER_PROD = "samewayread";
+    static final String PASS_PROD = "sameway25@*&1";
+
 	static String SQL;
-	static String OrderQuerySQL;
-	static String WithdrawQuerySQL;
-	static String AuthenticatedUserQuerySQL;
+	static String DB_URL;
+	static String USER, PASS;
 	static File file;
 
-	public static void Switch(String sql, String date) {
+	public static void Switch(String env, String sql, String date) {
+		switch (env) {
+			case "PROD" : {
+				DB_URL = DB_URL_PROD;
+				USER = USER_PROD;
+				PASS = PASS_PROD;
+			}
+
+			case "TEST" : {
+				DB_URL = DB_URL_TEST;
+				USER = USER_TEST;
+				PASS = PASS_TEST;
+			}
+		}
+
 		switch (sql) {
 			case "OrderQuerySQL" : {
 				SQL = "SELECT \n" +
@@ -84,21 +98,14 @@ public class XLS {
 
 				file = new File("./" + date + "至" + (new SimpleDateFormat("yyyy-MM-dd")).format(new Date()) + "认证用户报表.xls");
 			}
-
-			default : {
-
-			}
 		}
-
 	}
 
-
-
-    public static void makeXLS(String sql, String date) {
+    public static void makeXLS(String env, String sql, String date) {
         Connection conn = null;
         Statement stmt = null;
 
-	    Switch(sql, date);
+	    Switch(env, sql, date);
 
         try {
             //Register JDBC driver
@@ -106,7 +113,7 @@ public class XLS {
 
             //Open a connection
             System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(DBT_URL, USERT, PASST);
+            conn = DriverManager.getConnection(DB_URL, USER, PASS);
 
             //Execute a query
             System.out.println("Creating statement...");
@@ -168,8 +175,8 @@ public class XLS {
                 }
             } catch (SQLException se) {
                 se.printStackTrace();
-            }//end finally
-            System.out.println("Finished");
-        }//end try
-    }//end make
+            }
+        }
+	    System.out.println("Finished");
+    }
 }
