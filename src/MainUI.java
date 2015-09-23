@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -14,7 +15,7 @@ public class MainUI extends JFrame{
 	private JLabel jL1, jL2, jL3, jL4;
 	private JTextField jTF1;
 	private JButton jB1, jB2, jB3;
-	private JPanel jP;
+	private JPanel jP, upperJP;
 	private PrintStream psOut, psErr;
 
 	public MainUI() {
@@ -25,17 +26,14 @@ public class MainUI extends JFrame{
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(new BorderLayout());
 		addJPanel();
-		this.getRootPane().setDefaultButton(jB1);
+//		this.getRootPane().setDefaultButton(jB1);
 
 		psOut = new PrintStream(System.out) {
-			@Override
-			public void print(String str) {
-				jTA.append(str);
-			}
 			@Override
 			public void println(String str) {
 				jTA.append(str + "\n");
 			}
+
 			@Override
 			public void println(int i) {
 				jTA.append(String.valueOf(i) + "\n");
@@ -44,13 +42,10 @@ public class MainUI extends JFrame{
 
 		psErr = new PrintStream(System.err) {
 			@Override
-			public void print(String str) {
-				jTA.append(str);
-			}
-			@Override
 			public void println(String str) {
 				jTA.append(str + "\n");
 			}
+
 			@Override
 			public void println(int i) {
 				jTA.append(String.valueOf(i) + "\n");
@@ -109,16 +104,18 @@ public class MainUI extends JFrame{
 		}
 	}
 
-
 	public void addJTextArea() {
+		upperJP = new JPanel();
+		jP.add(upperJP);
+		upperJP.setBounds(5, 5, 285, 230);
+		upperJP.setLayout(new GridLayout(1, 1));
+
 		jTA = new JTextArea();
-		jTA.setBounds(5, 5, 285, 230);
 		jTA.setLineWrap(true);
 		jTA.setBorder(new LineBorder(new Color(127, 157, 185), 1, false));
-		jP.add(jTA);
-//		JScrollPane jSP = new JScrollPane(jTA);
-//		jP.add(jSP);
-//		jSP.setViewportView(jTA);
+//		upperJP.add(jTA);
+		JScrollPane jSP = new JScrollPane(jTA);
+		upperJP.add(jSP);
 	}
 
 	public void jTFKL() {
