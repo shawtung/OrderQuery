@@ -26,8 +26,7 @@ public class XLS {
     static final String PASS_PROD = "sameway25@*&1";
 
 	static String SQL;
-	static String DB_URL;
-	static String USER, PASS;
+	static String DB_URL, USER, PASS;
 	static File file;
 
 	public static void Switch(String env, String sql, String date) {
@@ -36,12 +35,14 @@ public class XLS {
 				DB_URL = DB_URL_PROD;
 				USER = USER_PROD;
 				PASS = PASS_PROD;
+				break;
 			}
 
 			case "TEST" : {
 				DB_URL = DB_URL_TEST;
 				USER = USER_TEST;
 				PASS = PASS_TEST;
+				break;
 			}
 		}
 
@@ -87,16 +88,19 @@ public class XLS {
 						"    order_info.create_time >= '" + date + "'\n" +
 						"ORDER BY order_info.create_time DESC;";
 				file = new File("./" + date + "至" + (new SimpleDateFormat("yyyy-MM-dd")).format(new Date()) + "投资订单报表.xls");
+				break;
 			}
 
 			case "WithdrawQuerySQL" : {
 
 				file = new File("./" + date + "至" + (new SimpleDateFormat("yyyy-MM-dd")).format(new Date()) + "提现报表.xls");
+				break;
 			}
 
 			case "AuthenticatedUserQuerySQL" : {
 
 				file = new File("./" + date + "至" + (new SimpleDateFormat("yyyy-MM-dd")).format(new Date()) + "认证用户报表.xls");
+				break;
 			}
 		}
 	}

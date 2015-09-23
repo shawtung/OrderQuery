@@ -1,5 +1,4 @@
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -10,7 +9,7 @@ import java.text.SimpleDateFormat;
 /**
  * Created by Shaw on 2015/9/22.
  */
-public class MainUI extends JFrame{
+public class MainUI extends JFrame {
 	private JTextArea jTA;
 	private JLabel jL1, jL2, jL3, jL4;
 	private JTextField jTF1;
@@ -30,6 +29,16 @@ public class MainUI extends JFrame{
 
 		psOut = new PrintStream(System.out) {
 			@Override
+			public void print(String str) {
+				jTA.append(str);
+			}
+
+			@Override
+			public void print(int i) {
+				jTA.append(String.valueOf(i));
+			}
+
+			@Override
 			public void println(String str) {
 				jTA.append(str + "\n");
 			}
@@ -41,6 +50,16 @@ public class MainUI extends JFrame{
 		};
 
 		psErr = new PrintStream(System.err) {
+			@Override
+			public void print(String str) {
+				jTA.append(str);
+			}
+
+			@Override
+			public void print(int i) {
+				jTA.append(String.valueOf(i));
+			}
+
 			@Override
 			public void println(String str) {
 				jTA.append(str + "\n");
@@ -59,6 +78,7 @@ public class MainUI extends JFrame{
 	public PrintStream getPsOut() {
 		return psOut;
 	}
+
 	public PrintStream getPsErr() {
 		return psErr;
 	}
@@ -95,7 +115,7 @@ public class MainUI extends JFrame{
 			try {
 				dateFormat.parse(jTF1.getText());
 				System.out.println("The Date is: " + getDate());
-				XLS.makeXLS("TEST", sql, getDate());
+				XLS.makeXLS("PROD", sql, getDate());
 			} catch (Exception pe) {
 				System.out.println("Wrong Date!");
 			}
@@ -111,7 +131,8 @@ public class MainUI extends JFrame{
 		upperJP.setLayout(new GridLayout(1, 1));
 
 		jTA = new JTextArea();
-		jTA.setLineWrap(true);
+		jTA.setEditable(false);
+//		jTA.setLineWrap(true);
 		jTA.setBorder(new LineBorder(new Color(127, 157, 185), 1, false));
 //		upperJP.add(jTA);
 		JScrollPane jSP = new JScrollPane(jTA);
@@ -129,7 +150,6 @@ public class MainUI extends JFrame{
 			}
 		}
 	}
-
 
 	public void addJTextField() {
 		jTF1 = new JTextField("", 8);
@@ -189,14 +209,13 @@ public class MainUI extends JFrame{
 		return temp.substring(0, 4) + "-" + temp.substring(4, 6) + "-" + temp.substring(6, 8);
 	}
 
-
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> {
-				MainUI mainUI = new MainUI();
-				System.setOut(mainUI.getPsOut());
-				System.setErr(mainUI.getPsErr());
-
-			}
+					MainUI mainUI = new MainUI();
+					System.setOut(mainUI.getPsOut());
+					System.setErr(mainUI.getPsErr());
+					System.out.println("Application started...");
+				}
 		);
 	}
 
