@@ -19,8 +19,8 @@ public class XLS {
     static final String DB_URL = "jdbc:mysql://121.41.106.210:3306/51qed?useUnicode=true&characterEncoding=UTF-8";
 
     //  Database credentials
-    static final String USER = "xiaotong";
-    static final String PASS = "xtong18";
+    static final String USER = "samewayread";
+    static final String PASS = "sameway25@*&1";
 
 
     public static void makeOrderXLS(String date) {
