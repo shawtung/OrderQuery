@@ -17,7 +17,7 @@ public class MainUI extends JFrame{
 	private JTextField jTF1;
 	private JButton jB;
 	private JPanel jP;
-	private PrintStream ps;
+	private PrintStream psOut, psErr;
 
 	public MainUI() {
 		setVisible(true);
@@ -29,11 +29,26 @@ public class MainUI extends JFrame{
 		addJPanel();
 		this.getRootPane().setDefaultButton(jB);
 
-		ps = new PrintStream(System.out) {
+		psOut = new PrintStream(System.out) {
+			@Override
 			public void print(String str) {
 				jTA.append(str);
 			}
+			@Override
+			public void println(String str) {
+				jTA.append(str + "\n");
+			}
+			@Override
+			public void println(int i) {
+				jTA.append(String.valueOf(i) + "\n");
+			}
+		};
 
+		psErr = new PrintStream(System.err) {
+			@Override
+			public void print(String str) {
+				jTA.append(str);
+			}
 			@Override
 			public void println(String str) {
 				jTA.append(str + "\n");
@@ -48,8 +63,11 @@ public class MainUI extends JFrame{
 
 	}
 
-	public PrintStream getPs() {
-		return ps;
+	public PrintStream getPsOut() {
+		return psOut;
+	}
+	public PrintStream getPsErr() {
+		return psErr;
 	}
 
 	public void addJPanel() {
@@ -73,7 +91,7 @@ public class MainUI extends JFrame{
 					try {
 						dateFormat.parse(jTF1.getText());
 						System.out.println("The Date is: " + getDate());
-						XLS.makeOrderXLS(getDate());
+						XLS.makeXLS("OrderQuerySQL", getDate());
 					} catch (Exception pe) {
 						System.out.println("Wrong Date!");
 					}
@@ -168,9 +186,17 @@ public class MainUI extends JFrame{
 
 
 	public static void main(String[] args) {
-		MainUI mainUI = new MainUI();
-		System.setOut(mainUI.getPs());
-		System.out.println("Started...");
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				MainUI mainUI = new MainUI();
+				System.setOut(mainUI.getPsOut());
+				System.setErr(mainUI.getPsErr());
+//				System.out.println("Started...");
+
+			}
+		});
+
 	}
 
 }

@@ -16,57 +16,89 @@ import jxl.write.biff.RowsExceededException;
 
 public class XLS {
     // JDBC driver name and database URL
+    static final String DBT_URL = "jdbc:mysql://121.41.33.100:3306/51qed?useUnicode=true&characterEncoding=UTF-8";
     static final String DB_URL = "jdbc:mysql://121.41.106.210:3306/51qed?useUnicode=true&characterEncoding=UTF-8";
 
     //  Database credentials
-    static final String USER = "xiaotong";
-    static final String PASS = "xtong18";
+    static final String USERT = "root";
+    static final String PASST = "";
+    static final String USER = "samewayread";
+    static final String PASS = "sameway25@*&1";
+	static String SQL;
+	static String OrderQuerySQL;
+	static String WithdrawQuerySQL;
+	static String AuthenticatedUserQuerySQL;
+	static File file;
+
+	public static void Switch(String sql, String date) {
+		switch (sql) {
+			case "OrderQuerySQL" : {
+				SQL = "SELECT \n" +
+						"    product_info.product_name AS '项目名称',\n" +
+						"    user_info.real_name AS '用户姓名',\n" +
+						"    user_info.telephone AS '手机号',\n" +
+						"    ROUND(order_info.order_money) AS '订单金额',\n" +
+						"    Date_FORMAT(order_info.create_time, '%Y-%m-%d %T') AS '订单创建时间',\n" +
+						"    Date_FORMAT(order_info.pay_time, '%Y-%m-%d %T') AS '订单确认时间',\n" +
+						"    Z.ord AS '个人序数',\n" +
+						"    IF(Z.ord = 1, '\u662f', '\u5426') AS '是否首投',\n" +
+						"    ifnull(H.real_name, '') AS '推荐人'\n" +
+						"FROM\n" +
+						"    (SELECT @ord:=0, @pre_uid:=- 1) AS r,\n" +
+						"    order_info\n" +
+						"        INNER JOIN\n" +
+						"    product_info ON order_info.order_product_tid = product_info.id\n" +
+						"        AND order_info.order_status_id = 100567\n" +
+						"        INNER JOIN\n" +
+						"    user_info ON order_info.order_user_tid = user_info.id\n" +
+						"        LEFT JOIN\n" +
+						"    (SELECT \n" +
+						"        user_info.id AS id, user_info.real_name AS real_name\n" +
+						"    FROM\n" +
+						"        user_info) AS H ON user_info.referrer_id = H.id\n" +
+						"        LEFT JOIN\n" +
+						"    (SELECT \n" +
+						"        id,\n" +
+						"            CASE\n" +
+						"                WHEN @pre_uid = order_user_tid THEN @ord:=@ord + 1\n" +
+						"                WHEN @pre_uid != order_user_tid THEN @ord:=1\n" +
+						"            END AS ord,\n" +
+						"            @pre_uid:=order_user_tid\n" +
+						"    FROM\n" +
+						"        order_info, (SELECT @ord, @pre_uid) AS r\n" +
+						"    WHERE\n" +
+						"        order_status_id = 100567\n" +
+						"    ORDER BY order_user_tid , create_time) AS Z ON Z.id = order_info.id\n" +
+						"WHERE\n" +
+						"    order_info.create_time >= '" + date + "'\n" +
+						"ORDER BY order_info.create_time DESC;";
+				file = new File("./" + date + "至" + (new SimpleDateFormat("yyyy-MM-dd")).format(new Date()) + "投资订单报表.xls");
+			}
+
+			case "WithdrawQuerySQL" : {
+
+				file = new File("./" + date + "至" + (new SimpleDateFormat("yyyy-MM-dd")).format(new Date()) + "提现报表.xls");
+			}
+
+			case "AuthenticatedUserQuerySQL" : {
+
+				file = new File("./" + date + "至" + (new SimpleDateFormat("yyyy-MM-dd")).format(new Date()) + "认证用户报表.xls");
+			}
+
+			default : {
+
+			}
+		}
+
+	}
 
 
-    public static void makeOrderXLS(String date) {
-        String now = (new SimpleDateFormat("yyyy-MM-dd")).format(new Date());
-        final String sql = "SELECT \n" +
-                "    product_info.product_name AS '项目名称',\n" +
-                "    user_info.real_name AS '用户姓名',\n" +
-                "    user_info.telephone AS '手机号',\n" +
-                "    ROUND(order_info.order_money) AS '订单金额',\n" +
-                "    Date_FORMAT(order_info.create_time, '%Y-%m-%d %T') AS '订单创建时间',\n" +
-                "    Date_FORMAT(order_info.pay_time, '%Y-%m-%d %T') AS '订单确认时间',\n" +
-                "    Z.ord AS '个人序数',\n" +
-                "    IF(Z.ord = 1, '\u662f', '\u5426') AS '是否首投',\n" +
-                "    ifnull(H.real_name, '') AS '推荐人'\n" +
-                "FROM\n" +
-                "    (SELECT @ord:=0, @pre_uid:=- 1) AS r,\n" +
-                "    order_info\n" +
-                "        INNER JOIN\n" +
-                "    product_info ON order_info.order_product_tid = product_info.id\n" +
-                "        AND order_info.order_status_id = 100567\n" +
-                "        INNER JOIN\n" +
-                "    user_info ON order_info.order_user_tid = user_info.id\n" +
-                "        LEFT JOIN\n" +
-                "    (SELECT \n" +
-                "        user_info.id AS id, user_info.real_name AS real_name\n" +
-                "    FROM\n" +
-                "        user_info) AS H ON user_info.referrer_id = H.id\n" +
-                "        LEFT JOIN\n" +
-                "    (SELECT \n" +
-                "        id,\n" +
-                "            CASE\n" +
-                "                WHEN @pre_uid = order_user_tid THEN @ord:=@ord + 1\n" +
-                "                WHEN @pre_uid != order_user_tid THEN @ord:=1\n" +
-                "            END AS ord,\n" +
-                "            @pre_uid:=order_user_tid\n" +
-                "    FROM\n" +
-                "        order_info, (SELECT @ord, @pre_uid) AS r\n" +
-                "    WHERE\n" +
-                "        order_status_id = 100567\n" +
-                "    ORDER BY order_user_tid , create_time) AS Z ON Z.id = order_info.id\n" +
-                "WHERE\n" +
-                "    order_info.create_time >= '" + date + "'\n" +
-                "ORDER BY order_info.create_time DESC\n" +
-                ";";
+
+    public static void makeXLS(String sql, String date) {
         Connection conn = null;
         Statement stmt = null;
+
+	    Switch(sql, date);
 
         try {
             //Register JDBC driver
@@ -74,17 +106,17 @@ public class XLS {
 
             //Open a connection
             System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(DB_URL, USER, PASS);
+            conn = DriverManager.getConnection(DBT_URL, USERT, PASST);
 
             //Execute a query
             System.out.println("Creating statement...");
             stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
+            ResultSet rs = stmt.executeQuery(SQL);
             ResultSetMetaData rsmd = rs.getMetaData();
 
             //Extract data from result set into Excel
             System.out.println("Creating .xls file...");
-            File file = new File("./" + date + "至" + now + "投资订单报表.xls");
+
             WritableWorkbook wwb = Workbook.createWorkbook(file);
             WritableSheet sheet = wwb.createSheet(date, 0);
 
@@ -137,7 +169,7 @@ public class XLS {
             } catch (SQLException se) {
                 se.printStackTrace();
             }//end finally
+            System.out.println("Finished");
         }//end try
-        System.out.println("Finished");
     }//end make
 }
