@@ -11,6 +11,7 @@ import java.util.Date;
 
 import jxl.*;
 import jxl.write.*;
+import jxl.write.Number;
 import jxl.write.biff.RowsExceededException;
 
 
@@ -48,57 +49,82 @@ public class XLS {
 
 		switch (sql) {
 			case "OrderQuerySQL" : {
-				SQL = "SELECT \n" +
-						"    product_info.product_name AS '项目名称',\n" +
-						"    user_info.real_name AS '用户姓名',\n" +
-						"    user_info.telephone AS '手机号',\n" +
-						"    ROUND(order_info.order_money) AS '订单金额',\n" +
-						"    Date_FORMAT(order_info.create_time, '%Y-%m-%d %T') AS '订单创建时间',\n" +
-						"    Date_FORMAT(order_info.pay_time, '%Y-%m-%d %T') AS '订单确认时间',\n" +
-						"    Z.ord AS '个人序数',\n" +
-						"    IF(Z.ord = 1, '\u662f', '\u5426') AS '是否首投',\n" +
-						"    ifnull(H.real_name, '') AS '推荐人'\n" +
+				SQL = "SELECT\n" +
+						"    order_info.id,\n" +
+						"    order_info.order_user_tid,\n" +
+						"    Z.ord AS ord\n" +
 						"FROM\n" +
-						"    (SELECT @ord:=0, @pre_uid:=- 1) AS r,\n" +
 						"    order_info\n" +
-						"        INNER JOIN\n" +
-						"    product_info ON order_info.order_product_tid = product_info.id\n" +
-						"        AND order_info.order_status_id = 100567\n" +
-						"        INNER JOIN\n" +
-						"    user_info ON order_info.order_user_tid = user_info.id\n" +
-						"        LEFT JOIN\n" +
-						"    (SELECT \n" +
-						"        user_info.id AS id, user_info.real_name AS real_name\n" +
-						"    FROM\n" +
-						"        user_info) AS H ON user_info.referrer_id = H.id\n" +
-						"        LEFT JOIN\n" +
-						"    (SELECT \n" +
-						"        id,\n" +
-						"            CASE\n" +
-						"                WHEN @pre_uid = order_user_tid THEN @ord:=@ord + 1\n" +
-						"                WHEN @pre_uid != order_user_tid THEN @ord:=1\n" +
-						"            END AS ord,\n" +
-						"            @pre_uid:=order_user_tid\n" +
-						"    FROM\n" +
-						"        order_info, (SELECT @ord, @pre_uid) AS r\n" +
-						"    WHERE\n" +
-						"        order_status_id = 100567\n" +
-						"    ORDER BY order_user_tid , create_time) AS Z ON Z.id = order_info.id\n" +
+						"    INNER JOIN\n" +
+						"    (SELECT\n" +
+						"         id,\n" +
+						"         CASE\n" +
+						"         WHEN @pre_uid = order_user_tid\n" +
+						"             THEN @ord := @ord + 1\n" +
+						"         WHEN @pre_uid != order_user_tid\n" +
+						"             THEN @ord := 1\n" +
+						"         END AS ord,\n" +
+						"         @pre_uid := order_user_tid\n" +
+						"     FROM\n" +
+						"         order_info, (SELECT\n" +
+						"                          @ord,\n" +
+						"                          @pre_uid) AS R\n" +
+						"     WHERE\n" +
+						"         order_status_id = 100567\n" +
+						"     ORDER BY order_user_tid, create_time) AS Z ON Z.id = order_info.id AND order_status_id = 100567\n" +
 						"WHERE\n" +
-						"    order_info.create_time >= '" + date + "'\n" +
+						"    order_info.create_time >= '2015-9-24'\n" +
 						"ORDER BY order_info.create_time DESC;";
 				file = new File("./" + date + "至" + (new SimpleDateFormat("yyyy-MM-dd")).format(new Date()) + "投资订单报表.xls");
 				break;
 			}
 
 			case "WithdrawQuerySQL" : {
-
+                SQL = "SELECT\n" +
+		                "    user_info.real_name AS 用户姓名,\n" +
+		                "    user_info.telephone AS 用户手机号,\n" +
+		                "    withDraw_application.create_time AS 提现申请时间,\n" +
+		                "    ROUND(withDraw_application.amount, 2) AS 提现金额,\n" +
+		                "    withDraw_application.counter_fee AS 手续费金额,\n" +
+		                "    ROUND((withDraw_application.amount - withDraw_application.counter_fee), 2) AS 应结算金额,\n" +
+		                "    bank_info.bank_name AS 银行名称,\n" +
+		                "    bank_info.subbranch_name AS 支行名称,\n" +
+		                "    bank_info.account_info AS 银行账号,\n" +
+		                "    withDraw_application.audit_date AS 审核日期\n" +
+		                "FROM\n" +
+		                "    withDraw_application,\n" +
+		                "    user_info,\n" +
+		                "    bank_info\n" +
+		                "WHERE\n" +
+		                "    withDraw_application.create_date >= '" + date + "'\n" +
+		                "        AND withDraw_application.user_tid = user_info.id\n" +
+		                "        AND user_info.user_account_tid = bank_info.id\n" +
+		                "ORDER BY withDraw_application.create_time DESC;";
 				file = new File("./" + date + "至" + (new SimpleDateFormat("yyyy-MM-dd")).format(new Date()) + "提现报表.xls");
 				break;
 			}
 
 			case "AuthenticatedUserQuerySQL" : {
-
+                SQL = "SELECT\n" +
+		                "    user_info.real_name AS 用户姓名,\n" +
+		                "    user_info.telephone AS 手机号,\n" +
+		                "    ATT.province AS 归属地,\n" +
+		                "    CONCAT('\u200B', identity_card) AS 身份证号,\n" +
+		                "    IFNULL(T.`real_name`, '') AS 推荐人,\n" +
+		                "    IFNULL(TT.`real_name`, '') AS 二级推荐人,\n" +
+		                "    user_info.create_time AS 注册时间\n" +
+		                "FROM\n" +
+		                "    user_info\n" +
+		                "        LEFT JOIN\n" +
+		                "    (SELECT telephone, province FROM user_attribute_info WHERE province IN ('上海' , '北京', '天津', '重庆', '安徽', '浙江', '江苏', '湖北', '湖南', '河北', '河南', '福建', '广东', '广西', '台湾', '贵州', '云南', '四川', '西藏', '新疆', '青海', '陕西', '山西', '山东', '宁夏', '甘肃', '辽宁', '吉林', '江西', '海南', '内蒙古', '黑龙江', '香港', '澳门') GROUP BY telephone) AS ATT ON ATT.telephone = user_info.telephone\n" +
+		                "        LEFT JOIN\n" +
+		                "    (SELECT id, real_name, referrer_id FROM user_info) AS T ON T.id = user_info.referrer_id\n" +
+		                "        LEFT JOIN\n" +
+		                "    (SELECT id, real_name, referrer_id FROM user_info) AS TT ON T.referrer_id = TT.id\n" +
+		                "WHERE\n" +
+		                "    create_time >= '" + date + "'\n" +
+		                "        AND identity_card IS NOT NULL\n" +
+		                "ORDER BY user_info.create_time DESC;";
 				file = new File("./" + date + "至" + (new SimpleDateFormat("yyyy-MM-dd")).format(new Date()) + "认证用户报表.xls");
 				break;
 			}
@@ -132,14 +158,17 @@ public class XLS {
             WritableSheet sheet = wwb.createSheet(date, 0);
 
             int i = 0;
-            WritableFont wFont = new WritableFont(WritableFont.createFont("宋体"), 10, WritableFont.BOLD);
-            WritableCellFormat headerFormat = new WritableCellFormat(wFont);
+            WritableCellFormat headerFormat = new WritableCellFormat(new WritableFont(WritableFont.createFont("宋体"), 10, WritableFont.BOLD));
             do {
                 for (int j = 1; j <= rsmd.getColumnCount(); j++) {
                     if (i == 0) {
                         sheet.addCell(new Label(j - 1, i, rsmd.getColumnLabel(j), headerFormat));
                     } else {
-                        sheet.addCell(new Label(j - 1, i, rs.getString(j)));
+	                    if (rsmd.getColumnLabel(j).indexOf("金额") > -1) {
+		                    sheet.addCell(new Number(j - 1, i, Double.parseDouble(rs.getString(j)), new WritableCellFormat(NumberFormats.FLOAT)));
+	                    } else {
+		                    sheet.addCell(new Label(j - 1, i, rs.getString(j)));
+	                    }
                     }
                 }
             } while (rs.next() && (++i != 0));
@@ -181,6 +210,10 @@ public class XLS {
                 se.printStackTrace();
             }
         }
-	    System.out.println("Finished");
+	    System.out.println("Finished\n");
     }
+
+	public static void main(String[] args) {
+		makeXLS("PROD", "OrderQuerySQL", "2015-09-24");
+	}
 }
