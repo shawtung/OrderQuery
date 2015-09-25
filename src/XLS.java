@@ -50,30 +50,40 @@ public class XLS {
 		switch (sql) {
 			case "OrderQuerySQL" : {
 				SQL = "SELECT\n" +
-						"    order_info.id,\n" +
-						"    order_info.order_user_tid,\n" +
-						"    Z.ord AS ord\n" +
+						"    order_info.id AS 订单ID,\n" +
+						"    product_name AS 项目名称,\n" +
+						"    user_info.real_name AS 用户姓名,\n" +
+						"    user_info.telephone AS 手机号,\n" +
+						"    ATT.province AS 归属地,\n" +
+						"    register_channel AS 注册渠道,\n" +
+						"    identity_card AS 身份证号,\n" +
+						"    IF(SUBSTR(identity_card, -2, 1) IN (1, 3, 5, 7, 9), '男', '女') AS 性别,\n" +
+						"    ROUND(order_info.order_money) AS 订单金额（元）,\n" +
+						"    order_info.create_time AS 订单创建时间,\n" +
+						"    order_info.pay_time AS 订单确认时间,\n" +
+						"    COUNT(order_info.id) AS 个人投资序数,\n" +
+						"    ROUND(`SUM(order_money)`) AS 个人投资总额（元）,\n" +
+						"    IF(COUNT(order_info.id) = 1, '是', '') AS 是否首投,\n" +
+						"    IFNULL(H.`real_name`, '') AS 推荐人,\n" +
+						"    IFNULL(HH.`real_name`, '') AS 二级推荐人\n" +
 						"FROM\n" +
 						"    order_info\n" +
-						"    INNER JOIN\n" +
-						"    (SELECT\n" +
-						"         id,\n" +
-						"         CASE\n" +
-						"         WHEN @pre_uid = order_user_tid\n" +
-						"             THEN @ord := @ord + 1\n" +
-						"         WHEN @pre_uid != order_user_tid\n" +
-						"             THEN @ord := 1\n" +
-						"         END AS ord,\n" +
-						"         @pre_uid := order_user_tid\n" +
-						"     FROM\n" +
-						"         order_info, (SELECT\n" +
-						"                          @ord,\n" +
-						"                          @pre_uid) AS R\n" +
-						"     WHERE\n" +
-						"         order_status_id = 100567\n" +
-						"     ORDER BY order_user_tid, create_time) AS Z ON Z.id = order_info.id AND order_status_id = 100567\n" +
-						"WHERE\n" +
-						"    order_info.create_time >= '2015-9-24'\n" +
+						"        INNER JOIN\n" +
+						"    product_info ON order_info.order_product_tid = product_info.id AND order_info.order_status_id = 100567\n" +
+						"        INNER JOIN\n" +
+						"    order_info AS OI2 ON OI2.order_user_tid = order_info.order_user_tid AND order_info.id >= OI2.id AND OI2.order_status_id = 100567\n" +
+						"        INNER JOIN\n" +
+						"    user_info ON order_info.order_user_tid = user_info.id\n" +
+						"        LEFT JOIN\n" +
+						"    (SELECT telephone, province FROM user_attribute_info WHERE province IN ('上海' , '北京', '天津', '重庆', '安徽', '浙江', '江苏', '湖北', '湖南', '河北', '河南', '福建', '广东', '广西', '台湾', '贵州', '云南', '四川', '西藏', '新疆', '青海', '陕西', '山西', '山东', '宁夏', '甘肃', '辽宁', '吉林', '江西', '海南', '内蒙古', '黑龙江', '香港', '澳门') GROUP BY telephone) AS ATT ON ATT.telephone = user_info.telephone\n" +
+						"        LEFT JOIN\n" +
+						"    (SELECT user_info.id, user_info.real_name, user_info.referrer_id FROM user_info) AS H ON user_info.referrer_id = H.id\n" +
+						"        LEFT JOIN\n" +
+						"    (SELECT user_info.id, user_info.real_name, user_info.referrer_id FROM user_info) AS HH ON H.referrer_id = HH.id\n" +
+						"        LEFT JOIN\n" +
+						"    (SELECT order_user_tid, SUM(order_money) FROM order_info WHERE order_status_id = 100567 GROUP BY order_user_tid) AS X ON X.order_user_tid = order_info.order_user_tid\n" +
+						"WHERE order_info.create_time >= '" + date + "'\n" +
+						"GROUP BY order_info.id\n" +
 						"ORDER BY order_info.create_time DESC;";
 				file = new File("./" + date + "至" + (new SimpleDateFormat("yyyy-MM-dd")).format(new Date()) + "投资订单报表.xls");
 				break;
@@ -214,6 +224,7 @@ public class XLS {
     }
 
 	public static void main(String[] args) {
-		makeXLS("PROD", "OrderQuerySQL", "2015-09-24");
+		makeXLS("PROD", "OrderQuerySQL", "2015-09-25");
+
 	}
 }
