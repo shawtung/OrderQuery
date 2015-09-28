@@ -59,8 +59,8 @@ public class XLS {
 						"    identity_card AS 身份证号,\n" +
 						"    IF(SUBSTR(identity_card, -2, 1) IN (1, 3, 5, 7, 9), '男', '女') AS 性别,\n" +
 						"    ROUND(order_info.order_money) AS 订单金额（元）,\n" +
-						"    order_info.create_time AS 订单创建时间,\n" +
-						"    order_info.pay_time AS 订单确认时间,\n" +
+						"    DATE_FORMAT(order_info.create_time, '%Y-%c-%e %T') AS 订单创建时间,\n" +
+						"    DATE_FORMAT(order_info.pay_time, '%Y-%c-%e %T') AS 订单确认时间,\n" +
 						"    COUNT(order_info.id) AS 个人投资序数,\n" +
 						"    ROUND(`SUM(order_money)`) AS 个人投资总额（元）,\n" +
 						"    IF(COUNT(order_info.id) = 1, '是', '') AS 是否首投,\n" +
@@ -93,7 +93,7 @@ public class XLS {
                 SQL = "SELECT\n" +
 		                "    user_info.real_name AS 用户姓名,\n" +
 		                "    user_info.telephone AS 用户手机号,\n" +
-		                "    withDraw_application.create_time AS 提现申请时间,\n" +
+		                "    DATE_FORMAT(withDraw_application.create_time, '%Y-%c-%e %T') AS 提现申请时间,\n" +
 		                "    ROUND(withDraw_application.amount, 2) AS 提现金额,\n" +
 		                "    withDraw_application.counter_fee AS 手续费金额,\n" +
 		                "    ROUND((withDraw_application.amount - withDraw_application.counter_fee), 2) AS 应结算金额,\n" +
@@ -122,7 +122,7 @@ public class XLS {
 		                "    CONCAT('\u200B', identity_card) AS 身份证号,\n" +
 		                "    IFNULL(T.`real_name`, '') AS 推荐人,\n" +
 		                "    IFNULL(TT.`real_name`, '') AS 二级推荐人,\n" +
-		                "    user_info.create_time AS 注册时间\n" +
+		                "    DATE_FORMAT(user_info.create_time, '%Y-%c-%e %T') AS 注册时间\n" +
 		                "FROM\n" +
 		                "    user_info\n" +
 		                "        LEFT JOIN\n" +
@@ -224,7 +224,7 @@ public class XLS {
     }
 
 	public static void main(String[] args) {
-		makeXLS("PROD", "OrderQuerySQL", "2015-09-25");
+		makeXLS("PROD", "WithdrawQuerySQL", "2015-09-26");
 
 	}
 }
